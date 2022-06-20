@@ -1,13 +1,15 @@
 import pygame as pg
 from math import *
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+from matplotlib.animation import FuncAnimation, FFMpegFileWriter
 from matplotlib import style
 
 style.use('fivethirtyeight')
 
 fig = plt.figure()
 ax1 = fig.add_subplot(1,1,1)
+line1, = ax1.plot([], [], label="theta1")
+line2, = ax1.plot([], [], label="theta2")
 
 def endPosCalculation(pos, θ, L):
   x1, y1 = pos
@@ -16,8 +18,8 @@ def endPosCalculation(pos, θ, L):
   return(x2, y2)
 
 def draw(p1, p2, m):
-  pg.draw.line(screen, (255, 255, 255), p1, p2, 3)
-  pg.draw.circle(screen, (255, 0, 0), p2, m)
+  pg.draw.line(screen, (254, 95, 0), p1, p2, 3)
+  pg.draw.circle(screen, (141, 161, 185), p2, m)
 
 
 def func_theta1_2():
@@ -41,8 +43,8 @@ L1 = L2 = height // 3
 # the mass of both pendulums
 m1 = 10
 m2 = 9
-θ1_1 = θ1_2 = θ2_1 = θ2_2 = 0
-# the gravity
+θ1_1 = θ1_2 = 0
+θ2_1 = θ2_2 = 0 # the gravity
 g = 1.0
 
 # start position of the first pendulum
@@ -54,14 +56,32 @@ oldPos = ePos2
 theta1_array = []
 theta2_array = []
 
+# for the plot
+theta1_x_array = []
+theta1_y_array = []
+theta2_x_array = []
+theta2_y_array = []
 
 time = 0
+
+def make_matplot_data():
+  for touble in theta1_array:
+    theta1_y_array.append(touble[0])
+    theta1_x_array.append(touble[1])
+  for touble in theta2_array:
+    theta2_y_array.append(touble[0])
+    theta2_x_array.append(touble[1])
+
+def animate(i):
+  line1.set_data(theta1_x_array[:i], theta1_y_array[:i])
+  return line1,
 
 if __name__ == '__main__':
   # this is only for pygame
   pg.init()
   screen = pg.display.set_mode([width, height])
   screen2 = pg.Surface([width, height])
+  screen2.fill((38, 20, 71))
   clock = pg.time.Clock()
   carry_on = True
 
@@ -91,29 +111,16 @@ if __name__ == '__main__':
 
     draw(aPos1, ePos1, m1)
     draw(aPos2, ePos2, m2)
-    pg.draw.line(screen2, (0, 255, 0), oldPos, ePos2, 2)
+    pg.draw.line(screen2, (255 , 15, 128), oldPos, ePos2, 2)
     oldPos = ePos2
     pg.display.flip()
     time += 1
+  make_matplot_data()
+  ax1.set_xlabel("time in sec")
+  ax1.set_ylabel("theta in radiant")
+  ani = FuncAnimation(fig, animate, frames=1000, interval= 25, blit=True)
+  plt.legend()
+  # writer = FFMpegFileWriter(fps=25)
+  # ani.save('plot_animation.mp4', writer=writer)
 
-theta1_x_array = []
-theta1_y_array = []
-theta2_x_array = []
-theta2_y_array = []
-for touble in theta1_array:
-  theta1_y_array.append(touble[0])
-  theta1_x_array.append(touble[1])
-
-for touble in theta2_array:
-  theta2_y_array.append(touble[0])
-  theta2_x_array.append(touble[1])
-
-print(theta1_x_array)
-print(theta2_x_array)
-ax1.plot(theta1_y_array, theta1_x_array, label='theta1')
-ax1.plot(theta2_y_array, theta2_x_array, label='theta2')
-plt.xlabel("Time in sec")
-plt.ylabel("Theta in radiant")
-plt.legend()
-plt.show()
 pg.quit()
